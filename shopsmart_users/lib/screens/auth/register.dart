@@ -1,0 +1,391 @@
+import 'package:flutter/material.dart';
+
+import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shopsmart_users/consts/validator.dart';
+import 'package:shopsmart_users/servies/my_app_function.dart';
+import 'package:shopsmart_users/widgets/app_name_text.dart';
+import 'package:shopsmart_users/widgets/auth/image_picker_widget.dart';
+import 'package:shopsmart_users/widgets/subtitle_text.dart';
+import 'package:shopsmart_users/widgets/title_text.dart';
+
+class RegisterScreen extends StatefulWidget {
+  static const routName = "/RegisterScreen";
+  const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  bool obscureText = true;
+  late final TextEditingController _nameController,
+      _emailController,
+      _passwordController,
+      _repeatPasswordController;
+
+  late final FocusNode _nameFocusNode,
+      _emailFocusNode,
+      _passwordFocusNode,
+      _repeatPasswordFocusNode;
+
+  final _formkey = GlobalKey<FormState>();
+  XFile? _pickedImage;
+
+  @override
+  void initState() {
+    _nameController = TextEditingController();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    _repeatPasswordController = TextEditingController();
+    // Focus Nodes
+    _nameFocusNode = FocusNode();
+    _emailFocusNode = FocusNode();
+    _passwordFocusNode = FocusNode();
+    _repeatPasswordFocusNode = FocusNode();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (mounted) {
+      _nameController.dispose();
+      _emailController.dispose();
+      _passwordController.dispose();
+      _repeatPasswordController.dispose();
+      // Focus Nodes
+      _nameFocusNode.dispose();
+      _emailFocusNode.dispose();
+      _passwordFocusNode.dispose();
+      _repeatPasswordFocusNode.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _registerFCT() async {
+    final isValid = _formkey.currentState!.validate();
+    FocusScope.of(context).unfocus();
+  }
+
+  Future<void> localImagePicker() async {
+    final ImagePicker imagePicker = ImagePicker();
+    await MyAppFunction.imagePickerDialog(
+      context: context,
+      cameraFCT: () async {
+        _pickedImage = await imagePicker.pickImage(source: ImageSource.camera);
+        setState(() {});
+      },
+      galleryFCT: () async {
+        _pickedImage = await imagePicker.pickImage(source: ImageSource.gallery);
+        setState(() {});
+      },
+      removeFCT: () async {
+        setState(() {
+          _pickedImage = null;
+        });
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 50,
+                ),
+                const AppNameTextWidget(
+                  fontSize: 30,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TitlesTextWidget(
+                        label: "Welcome back!",
+                        fontSize: 22,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      SubtitleTextWidget(
+                        label: "Your welcome message",
+                        fontSize: 20,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                SizedBox(
+                  height: size.width * 0.3,
+                  width: size.width * 0.3,
+                  child: PickImageWidget(
+                    function: () async {
+                      await localImagePicker();
+                    },
+                    pickedImage: _pickedImage,
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Form(
+                  key: _formkey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        focusNode: _nameFocusNode,
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.name,
+                        decoration: const InputDecoration(
+                          hintText: 'Full Name',
+                          prefixIcon: Icon(
+                            Icons.person,
+                          ),
+                        ),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context).requestFocus(_emailFocusNode);
+                        },
+                        validator: (value) {
+                          return MyValidators.displayNamevalidator(value);
+                        },
+                      ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      TextFormField(
+                        controller: _emailController,
+                        focusNode: _emailFocusNode,
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          hintText: "Email address",
+                          prefixIcon: Icon(
+                            IconlyLight.message,
+                          ),
+                        ),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context)
+                              .requestFocus(_passwordFocusNode);
+                        },
+                        validator: (value) {
+                          return MyValidators.emailValidator(value);
+                        },
+                      ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      TextFormField(
+                        controller: _passwordController,
+                        focusNode: _passwordFocusNode,
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.visiblePassword,
+                        obscureText: obscureText,
+                        decoration: InputDecoration(
+                          hintText: "***********",
+                          prefixIcon: const Icon(
+                            IconlyLight.lock,
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(
+                                () {
+                                  obscureText = !obscureText;
+                                },
+                              );
+                            },
+                            icon: Icon(
+                              obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                          ),
+                        ),
+                        onFieldSubmitted: (value) async {
+                          FocusScope.of(context)
+                              .requestFocus(_repeatPasswordFocusNode);
+                        },
+                        validator: (value) {
+                          return MyValidators.passwordValidator(value);
+                        },
+                      ),
+                      const SizedBox(
+                        height: 16.0,
+                      ),
+                      TextFormField(
+                        controller: _repeatPasswordController,
+                        focusNode: _repeatPasswordFocusNode,
+                        textInputAction: TextInputAction.done,
+                        keyboardType: TextInputType.visiblePassword,
+                        obscureText: obscureText,
+                        decoration: InputDecoration(
+                          hintText: "Repeat password",
+                          prefixIcon: const Icon(
+                            IconlyLight.lock,
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(
+                                () {
+                                  obscureText = !obscureText;
+                                },
+                              );
+                            },
+                            icon: Icon(
+                              obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                          ),
+                        ),
+                        onFieldSubmitted: (value) async {
+                          await _registerFCT();
+                        },
+                        validator: (value) {
+                          return MyValidators.repeatPasswordValidator(
+                            value: value,
+                            password: _passwordController.text,
+                          );
+                        },
+                      ),
+                      const SizedBox(
+                        height: 36.0,
+                      ),
+                      // Align(
+                      //   alignment: Alignment.centerRight,
+                      //   child: TextButton(
+                      //     onPressed: () {
+                      //       // Navigator.of(context).pushNamed(
+                      //       //   ForgotPasswordScreen.routeName,
+                      //       // );
+                      //     },
+                      //     child: const SubtitleTextWidget(
+                      //       label: "Forgot password?",
+                      //       fontStyle: FontStyle.italic,
+                      //       textDecoration: TextDecoration.underline,
+                      //       fontSize: 15,
+                      //     ),
+                      //   ),
+                      // ),
+                      // const SizedBox(
+                      //   height: 36.0,
+                      // ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.all(12.0),
+                            backgroundColor: Colors.lightBlue,
+                          ),
+                          icon: const Icon(
+                            Icons.login,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            "Login",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          onPressed: () async {
+                            await _registerFCT();
+                          },
+                        ),
+                      ),
+                      // const SizedBox(
+                      //   height: 16.0,
+                      // ),
+                      // SubtitleTextWidget(
+                      //   label: "Or connect using".toUpperCase(),
+                      //   fontSize: 15,
+                      //   color: Colors.white54,
+                      // ),
+                      // const SizedBox(
+                      //   height: 16.0,
+                      // ),
+                      // SizedBox(
+                      //   height: kBottomNavigationBarHeight + 10,
+                      //   child: Row(
+                      //     children: [
+                      //       const Expanded(
+                      //         flex: 2,
+                      //         child: SizedBox(
+                      //           height: kBottomNavigationBarHeight,
+                      //           child: FittedBox(
+                      //             child: GoogleButton(),
+                      //           ),
+                      //         ),
+                      //       ),
+                      //       const SizedBox(
+                      //         width: 16.0,
+                      //       ),
+                      //       Expanded(
+                      //         // flex: 2,
+                      //         child: SizedBox(
+                      //           height: kBottomNavigationBarHeight,
+                      //           child: ElevatedButton(
+                      //             style: ElevatedButton.styleFrom(
+                      //               padding: const EdgeInsets.all(12.0),
+                      //               backgroundColor: Colors.lightBlue,
+                      //             ),
+                      //             child: const Text(
+                      //               "Guest?",
+                      //               style: TextStyle(color: Colors.black),
+                      //             ),
+                      //             onPressed: () async {},
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
+                      // const SizedBox(
+                      //   height: 16.0,
+                      // ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     const SubtitleTextWidget(
+                      //       label: "Dont have an account?",
+                      //       fontSize: 15,
+                      //     ),
+                      //     TextButton(
+                      //       child: const SubtitleTextWidget(
+                      //         label: "Sign up",
+                      //         fontStyle: FontStyle.italic,
+                      //         textDecoration: TextDecoration.underline,
+                      //         fontSize: 15,
+                      //       ),
+                      //       onPressed: () {
+                      //         // Navigator.of(context)
+                      //         //     .pushNamed(RegisterScreen.routName);
+                      //       },
+                      //     ),
+                      //   ],
+                      // )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
